@@ -110,4 +110,15 @@ export const auth = betterAuth({
             updatedAt: "updated_at",
         }
     },
+    verification: {
+        modelName: "verifications",
+        fields: {
+            id: "id",
+            identifier: "identifier",
+            value: "value",
+            expiresAt: "expires_at",
+            createdAt: "created_at",
+            updatedAt: "updated_at",
+        }
+    },
 })
