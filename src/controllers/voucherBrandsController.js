@@ -1,6 +1,5 @@
 import { voucherDb } from '../db.js';
-
-const CLOUDFRONT_BASE_URL = 'https://dxamcuehe5m0b.cloudfront.net';
+import { CLOUDFRONT_BASE_URL } from '../lib/constants.js';
 
 const getCloudFrontUrl = (s3Key) => {
   if (!s3Key) return null;

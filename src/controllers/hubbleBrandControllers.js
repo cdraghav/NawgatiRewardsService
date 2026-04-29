@@ -2,13 +2,13 @@ import axios from "axios";
 import { getHubbleToken } from "../lib/hubble.js";
 import { voucherDb } from "../db.js";
 import { zendutyRequest } from "../lib/zenduty.js";
+import { HUBBLE_PARTNERS_PRODUCTS_URL } from "../lib/constants.js";
 
 export const getActiveBrands = async (req, res) => {
   try {
     const token = await getHubbleToken();
-
     const response = await axios.get(
-      "https://api.dev.myhubble.money/v1/partners/products",
+      HUBBLE_PARTNERS_PRODUCTS_URL,
       {
         headers: {
           Authorization: `Bearer ${token}`,
