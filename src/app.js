@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import { toNodeHandler, fromNodeHeaders } from "better-auth/node";
-import { auth } from './lib/auth';
-import voucherRoutes from './routes/voucherRoutes'
+import { auth } from './lib/auth.js';
+import voucherRoutes from './routes/voucherRoutes.js'
 import utilsRoutes from './routes/utilsRoutes.js';
-import { requireAuth } from './middlewares/auth';
+import { requireAuth } from './middlewares/auth.js';
 const app = express();
 
 app.use(

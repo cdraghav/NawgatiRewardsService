@@ -1,7 +1,7 @@
 import axios from "axios";
-import { getHubbleToken } from "../lib/hubble";
-import { voucherDb } from "../db";
-import { zendutyRequest } from "../lib/zenduty";
+import { getHubbleToken } from "../lib/hubble.js";
+import { voucherDb } from "../db.js";
+import { zendutyRequest } from "../lib/zenduty.js";
 
 export const getActiveBrands = async (req, res) => {
   try {

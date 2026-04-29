@@ -5,16 +5,16 @@ import {
   deleteVoucher,
   getVouchers,
   getVoucherById,
-} from '../controllers/voucherBrandsController';
+} from '../controllers/voucherBrandsController.js';
 import {
   listVoucherCategories,
   getVoucherCategoryById,
   createVoucherCategory,
   updateVoucherCategory,
   deleteVoucherCategory,
-} from '../controllers/voucherCategoryControllers';
-import { handleMulterError, uploadVoucherImages, validateTransparency } from '../lib/upload';
-import { getActiveBrands, handleBrandUpdated, handleWalletLowBalance } from "../controllers/hubbleBrandControllers";
+} from '../controllers/voucherCategoryControllers.js';
+import { handleMulterError, uploadVoucherImages, validateTransparency } from '../lib/upload.js';
+import { getActiveBrands, handleBrandUpdated, handleWalletLowBalance } from "../controllers/hubbleBrandControllers.js";
 
 const router = express.Router();
 

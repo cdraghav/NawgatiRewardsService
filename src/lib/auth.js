@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { pool } from '../db'
+import { pool } from '../db.js'
 import { organization, admin } from "better-auth/plugins"
 
 export const auth = betterAuth({

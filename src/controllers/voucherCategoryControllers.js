@@ -1,4 +1,4 @@
-import { voucherDb } from '../db';
+import { voucherDb } from '../db.js';
 
 export const listVoucherCategories = async (req, res) => {
   try {

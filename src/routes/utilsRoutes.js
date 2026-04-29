@@ -1,6 +1,6 @@
 import express from 'express';
-import { colorDetectionUpload, handleMulterError } from '../lib/upload';
-import { detectDominantColor } from '../controllers/utilsControllers';
+import { colorDetectionUpload, handleMulterError } from '../lib/upload.js';
+import { detectDominantColor } from '../controllers/utilsControllers.js';
 
 const router = express.Router();
 

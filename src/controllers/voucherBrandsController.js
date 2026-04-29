@@ -1,4 +1,4 @@
-import { voucherDb } from '../db';
+import { voucherDb } from '../db.js';
 
 const CLOUDFRONT_BASE_URL = 'https://dxamcuehe5m0b.cloudfront.net';
 
