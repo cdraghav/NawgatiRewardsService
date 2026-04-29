@@ -71,6 +71,14 @@ const voucherDb = createDatabase({
 });
 
 export const db = authDb;
+
+const _origQuery = authDb.pool.query.bind(authDb.pool);
+authDb.pool.query = (...args) => {
+  const [text, params] = args;
+  console.log("[pg auth] SQL:", typeof text === "string" ? text : text?.text);
+  if (params) console.log("[pg auth] params:", params);
+  return _origQuery(...args);
+};
 export const pool = authDb.pool;
 
 export { authDb, voucherDb };
