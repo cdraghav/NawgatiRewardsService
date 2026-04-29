@@ -4,6 +4,7 @@ import { organization, admin } from "better-auth/plugins"
 
 export const auth = betterAuth({
     database: pool,
+    logger: { level: "debug" },
     trustedOrigins: (process.env.ALLOWED_ORIGINS || "http://localhost:3000,http://localhost:3001")
         .split(",")
         .map((o) => o.trim())
