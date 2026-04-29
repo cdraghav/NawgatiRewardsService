@@ -4,9 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "babel src -d build",
     "start": "nodemon",
-    "serve": "yarn run build && node build",
+    "serve": "node src/index.js",
     "clean": "rm -rf node_modules",
     "nuke": "rm -rf node_modules yarn.lock package-lock.json"
   },
