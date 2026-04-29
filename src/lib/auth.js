@@ -4,10 +4,10 @@ import { organization, admin } from "better-auth/plugins"
 
 export const auth = betterAuth({
     database: pool,
-    trustedOrigins: [
-        "http://localhost:3000", 
-        "http://localhost:3001", 
-    ],
+    trustedOrigins: (process.env.ALLOWED_ORIGINS || "http://localhost:3000,http://localhost:3001")
+        .split(",")
+        .map((o) => o.trim())
+        .filter(Boolean),
     emailAndPassword: { 
         enabled: true, 
     }, 
