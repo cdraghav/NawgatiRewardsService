@@ -67,7 +67,6 @@ export const handleBrandUpdated = async (req, res) => {
     );
 
     if (existingBrand.rows.length === 0) {
-      console.log(`Brand with vendor_id ${vendorId} not found. Skipping update.`);
       return res.status(200).json({
         success: true,
         message: 'Brand not found in database',
@@ -96,7 +95,6 @@ export const handleBrandUpdated = async (req, res) => {
       ]
     );
 
-    console.log(`Successfully updated brand with vendor_id: ${vendorId}`);
 
     return res.status(200).json({
       success: true,

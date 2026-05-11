@@ -32,7 +32,11 @@ router.get('/', getVouchers);
 router.get('/:id', getVoucherById);
 router.post(
   '/',
-  uploadVoucherImages.fields([{ name: 'logo', maxCount: 1 }, { name: 'cover', maxCount: 1 }]),
+  uploadVoucherImages.fields([
+    { name: 'logo', maxCount: 1 },
+    { name: 'cover', maxCount: 1 },
+    { name: 'banner', maxCount: 1 },
+  ]),
   handleMulterError,
   validateTransparency,
   createVoucher
@@ -43,6 +47,7 @@ router.put(
   uploadVoucherImages.fields([
     { name: 'logo', maxCount: 1 },
     { name: 'cover', maxCount: 1 },
+    { name: 'banner', maxCount: 1 },
   ]),
   handleMulterError,
   updateVoucher

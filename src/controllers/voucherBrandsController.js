@@ -31,13 +31,18 @@ export const createVoucher = async (req, res) => {
 
     const uploadedLogo = req.files?.logo?.[0];
     const uploadedCover = req.files?.cover?.[0];
+    const uploadedBanner = req.files?.banner?.[0];
 
-    const logo_url = uploadedLogo 
+    const logo_url = uploadedLogo
       ? getCloudFrontUrl(uploadedLogo.key)
       : (logourl || null);
-    
-    const cover_image_url = uploadedCover 
+
+    const cover_image_url = uploadedCover
       ? getCloudFrontUrl(uploadedCover.key)
+      : null;
+
+    const banner_image_url = uploadedBanner
+      ? getCloudFrontUrl(uploadedBanner.key)
       : null;
 
     const parsedCategoryIds = categoryids 
@@ -100,6 +105,13 @@ export const createVoucher = async (req, res) => {
       });
     }
 
+    if (!banner_image_url) {
+      return res.status(400).json({
+        success: false,
+        message: "banner image is required",
+      });
+    }
+
     if (!parsedCategoryIds || parsedCategoryIds.length === 0) {
       return res.status(400).json({
         success: false,
@@ -156,11 +168,11 @@ export const createVoucher = async (req, res) => {
     }
 
     const result = await voucherDb.query(
-      `INSERT INTO voucher_brands 
-      (vendor_id, status, brand_name, brand_desc, denomination_type, logo_url, cover_image_url, color_code,
+      `INSERT INTO voucher_brands
+      (vendor_id, status, brand_name, brand_desc, denomination_type, logo_url, cover_image_url, banner_image_url, color_code,
         min_amount_p, max_amount_p, denominations, tnc_url, tnc, usage_instructions,
         voucher_expiry_in_months, discount_percentage, redemption_types, is_deleted)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, false)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, false)
       RETURNING *`,
       [
         vendorid,
@@ -170,6 +182,7 @@ export const createVoucher = async (req, res) => {
         denominationtype,
         logo_url,
         cover_image_url,
+        banner_image_url,
         colorcode,
         minamountp ? parseInt(minamountp) : null,
         maxamountp ? parseInt(maxamountp) : null,
@@ -224,20 +237,26 @@ export const updateVoucher = async (req, res) => {
       categoryids,
       logourl,
       coverurl,
+      bannerurl,
       usageinstructionsONLINE,
       usageinstructionsOFFLINE,
     } = req.body;
 
     const uploadedLogo = req.files?.logo?.[0];
     const uploadedCover = req.files?.cover?.[0];
+    const uploadedBanner = req.files?.banner?.[0];
 
-    const logo_url = uploadedLogo 
+    const logo_url = uploadedLogo
       ? getCloudFrontUrl(uploadedLogo.key)
       : (logourl || undefined);
-    
-    const cover_image_url = uploadedCover 
+
+    const cover_image_url = uploadedCover
       ? getCloudFrontUrl(uploadedCover.key)
       : (coverurl || undefined);
+
+    const banner_image_url = uploadedBanner
+      ? getCloudFrontUrl(uploadedBanner.key)
+      : (bannerurl || undefined);
 
     if (discountpercentage !== undefined && parseFloat(discountpercentage) <= 0) {
       return res.status(400).json({
@@ -283,6 +302,10 @@ export const updateVoucher = async (req, res) => {
     if (cover_image_url !== undefined) {
       updateFields.push(`cover_image_url = $${paramCount++}`);
       updateValues.push(cover_image_url);
+    }
+    if (banner_image_url !== undefined) {
+      updateFields.push(`banner_image_url = $${paramCount++}`);
+      updateValues.push(banner_image_url);
     }
     if (colorcode !== undefined) {
       updateFields.push(`color_code = $${paramCount++}`);

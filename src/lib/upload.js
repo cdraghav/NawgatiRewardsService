@@ -36,7 +36,7 @@ const streamToBuffer = async (stream) => {
 
 
 export const validateTransparency = async (req, res, next) => {
-  if (!req.files || (!req.files.logo && !req.files.cover)) {
+  if (!req.files || (!req.files.logo && !req.files.cover && !req.files.banner)) {
     return next();
   }
 
@@ -44,9 +44,16 @@ export const validateTransparency = async (req, res, next) => {
     const filesToCheck = [];
     if (req.files.logo) filesToCheck.push(...req.files.logo);
     if (req.files.cover) filesToCheck.push(...req.files.cover);
+    if (req.files.banner) filesToCheck.push(...req.files.banner);
+
+    const FIELD_LABELS = {
+      logo: 'Logo',
+      cover: 'Cover image',
+      banner: 'Banner image',
+    };
 
     for (const file of filesToCheck) {
-      const fieldLabel = file.fieldname === 'logo' ? 'Logo' : 'Cover image';
+      const fieldLabel = FIELD_LABELS[file.fieldname] || file.fieldname;
 
       try {
         // 1. Download the file from S3 (applies to both PNG and SVG)
@@ -167,6 +174,8 @@ export const uploadVoucherImages = multer({
         folder = "vouchers/logo";
       } else if (file.fieldname === "cover") {
         folder = "vouchers/cover-image";
+      } else if (file.fieldname === "banner") {
+        folder = "vouchers/banner-image";
       } else {
         folder = "vouchers/other";
       }
