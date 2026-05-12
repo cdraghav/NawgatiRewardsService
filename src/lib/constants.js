@@ -1,5 +1,5 @@
 export const HUBBLE_API_BASE_URL =
-  process.env.HUBBLE_API_BASE_URL || "https://api.dev.myhubble.money";
+  process.env.HUBBLE_API_BASE_URL || "https://api.myhubble.money";
 
 export const HUBBLE_AUTH_LOGIN_URL = `${HUBBLE_API_BASE_URL}/v1/partners/auth/login`;
 export const HUBBLE_PARTNERS_PRODUCTS_URL = `${HUBBLE_API_BASE_URL}/v1/partners/products`;
