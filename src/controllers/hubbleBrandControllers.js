@@ -112,9 +112,7 @@ export const handleBrandUpdated = async (req, res) => {
 };
 export const syncHubbleDiscounts = async (req, res) => {
   try {
-    const { diffAll, applyChanges } = await import(
-      "../../scripts/syncHubbleDiscounts.js"
-    );
+    const { diffAll, applyChanges } = await import("../lib/hubbleSync.js");
     const apply = req.query.apply === "true" || req.body?.apply === true;
     const ids = Array.isArray(req.body?.ids)
       ? req.body.ids.map((n) => Number(n)).filter(Number.isFinite)
