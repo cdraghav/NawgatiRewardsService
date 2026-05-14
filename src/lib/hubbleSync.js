@@ -129,9 +129,11 @@ const sortedIntArray = (v) =>
     .map((x) => parseInt(String(x), 10))
     .filter(Number.isFinite)].sort((a, b) => a - b);
 
-// JSON.stringify preserves key insertion order, so naive equality false-flags
-// identical objects whose keys arrived in a different order
+// JSON.stringify preserves key insertion order, which makes naive equality
+// false-flag identical objects whose keys arrived in a different order
 // (e.g. {App, Website} vs {Website, App}). Canonicalize first.
+// Key case is *preserved* — a {ONLINE} vs {Online} mismatch is treated as
+// a real diff so it surfaces in the dashboard.
 function canon(v) {
   if (v === null || typeof v !== "object") return v;
   if (Array.isArray(v)) return v.map(canon);
