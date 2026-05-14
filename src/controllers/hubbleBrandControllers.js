@@ -110,6 +110,39 @@ export const handleBrandUpdated = async (req, res) => {
     });
   }
 };
+export const syncHubbleDiscounts = async (req, res) => {
+  try {
+    const { diffAll, applyChanges } = await import(
+      "../../scripts/syncHubbleDiscounts.js"
+    );
+    const apply = req.query.apply === "true" || req.body?.apply === true;
+    const ids = Array.isArray(req.body?.ids)
+      ? req.body.ids.map((n) => Number(n)).filter(Number.isFinite)
+      : null;
+    const fields = Array.isArray(req.body?.fields)
+      ? req.body.fields.map((s) => String(s))
+      : null;
+
+    const diff = await diffAll();
+    let applied = null;
+    if (apply) applied = await applyChanges(diff.changed, ids, fields);
+
+    // Strip the internal _hubbleBrand carrier — only used for the apply path.
+    const clientChanged = diff.changed.map(({ _hubbleBrand, ...rest }) => rest);
+    return res.json({
+      success: true,
+      data: { ...diff, changed: clientChanged, applied },
+    });
+  } catch (err) {
+    console.error("Error syncing Hubble data:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to sync Hubble data",
+      error: err.message,
+    });
+  }
+};
+
 export const handleWalletLowBalance = async (req, res) => {
   try {
     const { balance, threshold } = req.body;

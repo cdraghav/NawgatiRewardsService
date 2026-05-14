@@ -14,13 +14,15 @@ import {
   deleteVoucherCategory,
 } from '../controllers/voucherCategoryControllers.js';
 import { handleMulterError, uploadVoucherImages, validateTransparency } from '../lib/upload.js';
-import { getActiveBrands, handleBrandUpdated, handleWalletLowBalance } from "../controllers/hubbleBrandControllers.js";
+import { getActiveBrands, handleBrandUpdated, handleWalletLowBalance, syncHubbleDiscounts } from "../controllers/hubbleBrandControllers.js";
 
 const router = express.Router();
 
 router.get("/hubble-brands", getActiveBrands);
 router.post('/hubble/update-voucher', handleBrandUpdated);
 router.post('/hubble/low-balance', handleWalletLowBalance);
+router.get('/hubble/sync-discounts', syncHubbleDiscounts);
+router.post('/hubble/sync-discounts', syncHubbleDiscounts);
 
 router.get('/categories', listVoucherCategories);
 router.get('/categories/:id', getVoucherCategoryById);

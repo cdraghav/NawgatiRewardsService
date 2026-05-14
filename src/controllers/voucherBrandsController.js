@@ -1,5 +1,6 @@
 import { voucherDb } from '../db.js';
 import { CLOUDFRONT_BASE_URL } from '../lib/constants.js';
+import { buildPartialUpdate } from '../lib/voucherFieldSanitizers.js';
 
 const getCloudFrontUrl = (s3Key) => {
   if (!s3Key) return null;
@@ -25,6 +26,7 @@ export const createVoucher = async (req, res) => {
       redemptiontypes,
       categoryids,
       logourl,
+      usageinstructions,
       usageinstructionsONLINE,
       usageinstructionsOFFLINE,
     } = req.body;
@@ -139,8 +141,26 @@ export const createVoucher = async (req, res) => {
       ? (Array.isArray(tnc) ? tnc : null)
       : null;
 
+    // Prefer the new JSON-encoded `usageinstructions` keyed by retailModeName
+    // (e.g. {"Website": [...], "App": [...]}). Fall back to the legacy
+    // ONLINE/OFFLINE form fields for older callers.
     let parsedUsageInstructions = null;
-    if (usageinstructionsONLINE || usageinstructionsOFFLINE) {
+    if (usageinstructions) {
+      try {
+        const parsed =
+          typeof usageinstructions === "string"
+            ? JSON.parse(usageinstructions)
+            : usageinstructions;
+        if (parsed && typeof parsed === "object") {
+          parsedUsageInstructions = {};
+          for (const [k, v] of Object.entries(parsed)) {
+            parsedUsageInstructions[k] = Array.isArray(v) ? v : [];
+          }
+        }
+      } catch {
+        parsedUsageInstructions = null;
+      }
+    } else if (usageinstructionsONLINE || usageinstructionsOFFLINE) {
       parsedUsageInstructions = {};
       if (usageinstructionsONLINE) {
         parsedUsageInstructions.ONLINE = Array.isArray(usageinstructionsONLINE) ? usageinstructionsONLINE : [];
@@ -238,6 +258,7 @@ export const updateVoucher = async (req, res) => {
       logourl,
       coverurl,
       bannerurl,
+      usageinstructions,
       usageinstructionsONLINE,
       usageinstructionsOFFLINE,
     } = req.body;
@@ -275,120 +296,63 @@ export const updateVoucher = async (req, res) => {
       }
     }
 
-    const updateFields = [];
-    const updateValues = [];
-    let paramCount = 1;
-
-    if (status !== undefined) {
-      updateFields.push(`status = $${paramCount++}`);
-      updateValues.push(status);
-    }
-    if (brandname !== undefined) {
-      updateFields.push(`brand_name = $${paramCount++}`);
-      updateValues.push(brandname);
-    }
-    if (branddesc !== undefined) {
-      updateFields.push(`brand_desc = $${paramCount++}`);
-      updateValues.push(branddesc);
-    }
-    if (denominationtype !== undefined) {
-      updateFields.push(`denomination_type = $${paramCount++}`);
-      updateValues.push(denominationtype);
-    }
-    if (logo_url !== undefined) {
-      updateFields.push(`logo_url = $${paramCount++}`);
-      updateValues.push(logo_url);
-    }
-    if (cover_image_url !== undefined) {
-      updateFields.push(`cover_image_url = $${paramCount++}`);
-      updateValues.push(cover_image_url);
-    }
-    if (banner_image_url !== undefined) {
-      updateFields.push(`banner_image_url = $${paramCount++}`);
-      updateValues.push(banner_image_url);
-    }
-    if (colorcode !== undefined) {
-      updateFields.push(`color_code = $${paramCount++}`);
-      updateValues.push(colorcode);
-    }
-    if (minamountp !== undefined) {
-      updateFields.push(`min_amount_p = $${paramCount++}`);
-      updateValues.push(parseInt(minamountp));
-    }
-    if (maxamountp !== undefined) {
-      updateFields.push(`max_amount_p = $${paramCount++}`);
-      updateValues.push(parseInt(maxamountp));
-    }
-    if (denominations !== undefined) {
-      const denoArray = Array.isArray(denominations) ? denominations.map(d => parseInt(d)) : null;
-      updateFields.push(`denominations = $${paramCount++}`);
-      updateValues.push(denoArray);
-    }
-    if (tncurl !== undefined) {
-      updateFields.push(`tnc_url = $${paramCount++}`);
-      updateValues.push(tncurl);
-    }
-    if (tnc !== undefined) {
-      const tncArray = Array.isArray(tnc) ? tnc : null;
-      updateFields.push(`tnc = $${paramCount++}`);
-      updateValues.push(tncArray);
+    // Build a raw-value-per-column map and let the shared sanitizers handle
+    // parsing, casts and `undefined` → "don't touch" semantics. This is the
+    // ONLY place that controllers should describe field naming — sanitation
+    // lives in voucherFieldSanitizers.js so the sync apply path uses the
+    // same logic.
+    let rawUsageInstructions;
+    if (req.body.usage_instructions !== undefined) {
+      // Direct jsonb payload (sync Fix path).
+      rawUsageInstructions = req.body.usage_instructions;
+    } else if (usageinstructions !== undefined) {
+      // New shape from the import / edit form: a JSON object keyed by
+      // retailModeName (Hubble's grouping). Pass through to the sanitizer.
+      rawUsageInstructions =
+        typeof usageinstructions === "string"
+          ? (() => { try { return JSON.parse(usageinstructions); } catch { return null; } })()
+          : usageinstructions;
+    } else if (usageinstructionsONLINE !== undefined || usageinstructionsOFFLINE !== undefined) {
+      // Legacy split-array payload.
+      rawUsageInstructions = {
+        ONLINE: Array.isArray(usageinstructionsONLINE) ? usageinstructionsONLINE : [],
+        OFFLINE: Array.isArray(usageinstructionsOFFLINE) ? usageinstructionsOFFLINE : [],
+      };
     }
 
-    if (usageinstructionsONLINE || usageinstructionsOFFLINE) {
-      const parsedUsageInstructions = {};
-      if (usageinstructionsONLINE) {
-        parsedUsageInstructions.ONLINE = Array.isArray(usageinstructionsONLINE) ? usageinstructionsONLINE : [];
-      }
-      if (usageinstructionsOFFLINE) {
-        parsedUsageInstructions.OFFLINE = Array.isArray(usageinstructionsOFFLINE) ? usageinstructionsOFFLINE : [];
-      }
-      updateFields.push(`usage_instructions = $${paramCount++}`);
-      updateValues.push(parsedUsageInstructions);
-    }
+    const rawByColumn = {
+      status,
+      brand_name: brandname,
+      brand_desc: branddesc,
+      denomination_type: denominationtype,
+      logo_url,
+      cover_image_url,
+      banner_image_url,
+      color_code: colorcode,
+      min_amount_p: minamountp,
+      max_amount_p: maxamountp,
+      denominations,
+      tnc_url: tncurl,
+      tnc,
+      usage_instructions: rawUsageInstructions,
+      voucher_expiry_in_months: voucherexpiryinmonths,
+      discount_percentage: discountpercentage,
+      redemption_types: redemptiontypes,
+    };
 
-    if (voucherexpiryinmonths !== undefined) {
-      updateFields.push(`voucher_expiry_in_months = $${paramCount++}`);
-      updateValues.push(parseInt(voucherexpiryinmonths));
-    }
-    if (discountpercentage !== undefined) {
-      updateFields.push(`discount_percentage = $${paramCount++}`);
-      updateValues.push(parseFloat(discountpercentage));
-    }
-    
-    if (redemptiontypes !== undefined) {
-      let parsedRedemptionTypes = null;
-      if (Array.isArray(redemptiontypes) && redemptiontypes.length > 0) {
-        const typesSet = new Set();
-        
-        redemptiontypes.forEach(type => {
-          const lowerType = type.toLowerCase();
-          if (lowerType === "online_and_offline") {
-            typesSet.add("online");
-            typesSet.add("offline");
-          } else if (lowerType === "online" || lowerType === "offline") {
-            typesSet.add(lowerType);
-          }
-        });
-        
-        parsedRedemptionTypes = Array.from(typesSet);
-      }
-      updateFields.push(`redemption_types = $${paramCount++}`);
-      updateValues.push(parsedRedemptionTypes);
-    }
+    const { sets, values } = buildPartialUpdate(rawByColumn);
 
-    if (updateFields.length === 0 && !categoryids) {
+    if (sets.length === 0 && !categoryids) {
       return res.status(400).json({
         success: false,
         message: "No fields to update",
       });
     }
 
-    if (updateFields.length > 0) {
-      updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
-      updateValues.push(id);
-
-      const query = `UPDATE voucher_brands SET ${updateFields.join(", ")} WHERE id = $${paramCount} AND is_deleted = false RETURNING *`;
-      const result = await voucherDb.query(query, updateValues);
+    if (sets.length > 0) {
+      values.push(id);
+      const query = `UPDATE voucher_brands SET ${sets.join(", ")}, updated_at = CURRENT_TIMESTAMP WHERE id = $${values.length} AND is_deleted = false RETURNING *`;
+      const result = await voucherDb.query(query, values);
 
       if (result.rows.length === 0) {
         return res.status(404).json({
